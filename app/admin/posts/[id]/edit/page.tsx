@@ -357,7 +357,10 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
             <textarea
               {...register('content', { required: '본문을 입력해주세요' })}
               ref={(e) => {
-                register('content').ref(e)
+                const { ref } = register('content')
+                if (typeof ref === 'function') {
+                  ref(e)
+                }
                 contentTextareaRef.current = e
               }}
               rows={15}
