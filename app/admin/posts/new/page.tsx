@@ -143,10 +143,13 @@ export default function NewPostPage() {
         }
       }
 
-      // Insert post
-      const { error: insertError } = await adminSupabase
-        .from('posts')
-        .insert([{
+      // Insert post via API route
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           title: data.title,
           description: data.description,
           content: data.content,
@@ -155,9 +158,13 @@ export default function NewPostPage() {
           read_time: data.read_time,
           slug: slug,
           published: data.published,
-        }])
+        }),
+      })
 
-      if (insertError) throw insertError
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '포스트 생성에 실패했습니다')
+      }
 
       router.push('/admin/posts')
       router.refresh()
