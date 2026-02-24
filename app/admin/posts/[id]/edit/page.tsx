@@ -16,7 +16,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<Post | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [uploadingContentImage, setUploadingContentImage] = useState(false)
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null)
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<PostFormData>()
   
