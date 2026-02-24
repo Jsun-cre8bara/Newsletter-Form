@@ -26,6 +26,7 @@ function transformImageReferences(content: string): string {
   // 각 이미지 파일명을 마크다운 이미지 형식으로 변환
   Object.entries(imageMapping).forEach(([fileName, storageFileName]) => {
     const imageUrl = `${SUPABASE_STORAGE_BASE_URL}/${storageFileName}`
+    const markdownImage = `![${fileName}](${imageUrl})`
     
     // 패턴 1: img_upload 경로가 있는 경우 변환
     transformed = transformed.replace(
@@ -34,13 +35,23 @@ function transformImageReferences(content: string): string {
     )
     
     // 패턴 2: 단독으로 있는 경우 (이미 마크다운 형식이 아닌 경우만)
-    // ![fileName]( 형태가 이미 있으면 건너뛰기
+    // 이미 ![fileName]( 형태가 있으면 건너뛰기
     if (!transformed.includes(`![${fileName}](`)) {
-      // 줄바꿈이나 공백 뒤에 오는 경우
-      transformed = transformed.replace(
-        new RegExp(`(^|\\n|\\s)${fileName}(?=\\s|\\n|$|:)`, 'g'),
-        `$1![${fileName}](${imageUrl})`
-      )
+      // 줄 단위로 처리하여 더 정확하게 매칭
+      const lines = transformed.split('\n')
+      const transformedLines = lines.map(line => {
+        // 이미 마크다운 이미지 형식이 포함된 줄은 그대로 유지
+        if (line.includes(`![${fileName}](`)) {
+          return line
+        }
+        // 단독으로 있는 fileName을 찾아서 변환
+        // 단어 경계를 사용하여 정확하게 매칭
+        return line.replace(
+          new RegExp(`(^|\\s)${fileName}(?=\\s|$|:)`, 'g'),
+          `$1${markdownImage}`
+        )
+      })
+      transformed = transformedLines.join('\n')
     }
   })
   
