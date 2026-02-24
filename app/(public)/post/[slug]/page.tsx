@@ -7,6 +7,46 @@ import { supabase } from '@/lib/supabase'
 import { Post } from '@/lib/types'
 import NewsletterForm from '@/components/NewsletterForm'
 
+// 이미지 파일명 매핑 (Git 파일명 → Supabase Storage 파일명)
+const imageMapping: Record<string, string> = {
+  '01_kim': '1770869412569-4f87fi.jpg',
+  '02_kim': '1770869502060-zppflc.jpg',
+  '03_kim': '1770869563419-pmpisk.jpg',
+  '04_kim': '1770869558293-gxu2e8.jpg',
+  '05_kim': '1770869532678-1rahev.jpg',
+  '06_kim': '1770869548704-h6qqbf.jpg',
+}
+
+const SUPABASE_STORAGE_BASE_URL = 'https://ozeslhrhmrxmepdphxzy.supabase.co/storage/v1/object/public/blog-images'
+
+// 본문에서 이미지 파일명을 마크다운 이미지 형식으로 변환
+function transformImageReferences(content: string): string {
+  let transformed = content
+  
+  // 각 이미지 파일명을 마크다운 이미지 형식으로 변환
+  Object.entries(imageMapping).forEach(([fileName, storageFileName]) => {
+    const imageUrl = `${SUPABASE_STORAGE_BASE_URL}/${storageFileName}`
+    
+    // 패턴 1: img_upload 경로가 있는 경우 변환
+    transformed = transformed.replace(
+      new RegExp(`img_upload[^\\s]*${fileName}[^\\s]*`, 'g'),
+      imageUrl
+    )
+    
+    // 패턴 2: 단독으로 있는 경우 (이미 마크다운 형식이 아닌 경우만)
+    // ![fileName]( 형태가 이미 있으면 건너뛰기
+    if (!transformed.includes(`![${fileName}](`)) {
+      // 줄바꿈이나 공백 뒤에 오는 경우
+      transformed = transformed.replace(
+        new RegExp(`(^|\\n|\\s)${fileName}(?=\\s|\\n|$|:)`, 'g'),
+        `$1![${fileName}](${imageUrl})`
+      )
+    }
+  })
+  
+  return transformed
+}
+
 async function getPost(slug: string): Promise<Post | null> {
   const { data, error } = await supabase
     .from('posts')
@@ -109,7 +149,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
             {/* Content */}
             <div className="prose prose-lg max-w-none">
-              <ReactMarkdown>{post.content}</ReactMarkdown>
+              <ReactMarkdown>{transformImageReferences(post.content)}</ReactMarkdown>
             </div>
           </div>
         </div>
