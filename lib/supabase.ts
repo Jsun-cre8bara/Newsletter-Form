@@ -2,24 +2,29 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// 환경변수 체크
-console.log('🔧 Supabase 환경변수 체크:')
-console.log('- URL:', supabaseUrl ? '✅ 설정됨' : '❌ 없음')
-console.log('- Anon Key:', supabaseAnonKey ? '✅ 설정됨' : '❌ 없음')
-console.log('- Service Key:', supabaseServiceKey ? '✅ 설정됨' : '❌ 없음')
+// 환경변수 체크 (서버 사이드에서만)
+if (typeof window === 'undefined') {
+  console.log('🔧 Supabase 환경변수 체크:')
+  console.log('- URL:', supabaseUrl ? '✅ 설정됨' : '❌ 없음')
+  console.log('- Anon Key:', supabaseAnonKey ? '✅ 설정됨' : '❌ 없음')
+  console.log('- Service Key:', supabaseServiceKey ? '✅ 설정됨' : '❌ 없음')
+}
 
 // Public client (read-only for most operations)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Admin client with service role (full access, bypass RLS)
-export const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
+// Only create on server side where SERVICE_ROLE_KEY is available
+export const adminSupabase = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : createClient(supabaseUrl, supabaseAnonKey) // Fallback to anon client on client side
 
 // Helper functions for image upload (uses admin client for full access)
 export const uploadImage = async (file: File, bucket: string = 'blog-images'): Promise<string | null> => {
