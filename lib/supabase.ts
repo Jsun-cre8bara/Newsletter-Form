@@ -26,7 +26,7 @@ export const adminSupabase = supabaseServiceKey
     })
   : createClient(supabaseUrl, supabaseAnonKey) // Fallback to anon client on client side
 
-// Helper functions for image upload (uses admin client for full access)
+// Helper functions for image upload (uses API route for server-side upload)
 export const uploadImage = async (file: File, bucket: string = 'blog-images'): Promise<string | null> => {
   try {
     console.log('📤 [uploadImage] 시작')
@@ -34,37 +34,25 @@ export const uploadImage = async (file: File, bucket: string = 'blog-images'): P
     console.log('  - 파일 크기:', file.size, 'bytes')
     console.log('  - 버킷:', bucket)
     
-    const fileExt = file.name.split('.').pop()
-    const timestamp = Date.now()
-    const randomStr = Math.random().toString(36).substring(2, 8)
-    const fileName = `${timestamp}-${randomStr}.${fileExt}`
-    const filePath = fileName
+    // API Route를 통해 서버 사이드에서 업로드
+    const formData = new FormData()
+    formData.append('file', file)
 
-    console.log('  - 생성된 파일명:', fileName)
+    const response = await fetch('/api/upload-image', {
+      method: 'POST',
+      body: formData,
+    })
 
-    const { data: uploadData, error } = await adminSupabase.storage
-      .from(bucket)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      })
-
-    if (error) {
+    if (!response.ok) {
+      const error = await response.json()
       console.error('❌ [uploadImage] 업로드 실패:', error)
-      console.error('  - 에러 메시지:', error.message)
-      console.error('  - 에러 상세:', error)
       return null
     }
 
-    console.log('✅ [uploadImage] 업로드 성공:', uploadData)
-
-    const { data: urlData } = adminSupabase.storage
-      .from(bucket)
-      .getPublicUrl(filePath)
-
-    console.log('🔗 [uploadImage] Public URL 생성:', urlData.publicUrl)
-
-    return urlData.publicUrl
+    const data = await response.json()
+    console.log('✅ [uploadImage] 업로드 성공:', data.url)
+    
+    return data.url
   } catch (error) {
     console.error('❌ [uploadImage] 예외 발생:', error)
     return null
