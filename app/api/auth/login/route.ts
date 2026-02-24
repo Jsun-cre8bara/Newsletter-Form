@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     console.log('📥 [LOGIN] 비밀번호 수신:', password ? '있음' : '없음')
 
     // 환경변수에서 관리자 비밀번호 가져오기
-    const adminPassword = process.env.ADMIN_PASSWORD
+    const adminPassword = process.env.ADMIN_PASSWORD?.trim()
     console.log('🔑 [LOGIN] 환경변수 ADMIN_PASSWORD:', adminPassword ? '설정됨' : '❌ 없음')
 
     if (!adminPassword) {
@@ -20,9 +20,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 비밀번호 확인
+    // 비밀번호 확인 (양쪽 모두 trim 처리)
+    const trimmedPassword = password?.trim()
     console.log('🔍 [LOGIN] 비밀번호 비교 중...')
-    if (password !== adminPassword) {
+    console.log('  - 입력된 비밀번호:', `"${trimmedPassword}"`)
+    console.log('  - 설정된 비밀번호:', `"${adminPassword}"`)
+    
+    if (trimmedPassword !== adminPassword) {
       console.log('❌ [LOGIN] 비밀번호 불일치')
       return NextResponse.json(
         { error: '비밀번호가 올바르지 않습니다' },
