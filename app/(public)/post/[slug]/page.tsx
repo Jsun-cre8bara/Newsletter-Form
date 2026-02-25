@@ -160,7 +160,21 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
             {/* Content */}
             <div className="prose prose-lg max-w-none">
-              <ReactMarkdown>{transformImageReferences(post.content)}</ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  img: ({ node, ...props }) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      {...props}
+                      alt={props.alt || ''}
+                      className="rounded-lg shadow-md my-4 w-full h-auto"
+                      style={{ maxWidth: '100%', height: 'auto' }}
+                    />
+                  )
+                }}
+              >
+                {transformImageReferences(post.content)}
+              </ReactMarkdown>
             </div>
           </div>
         </div>
