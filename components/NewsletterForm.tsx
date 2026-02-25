@@ -51,7 +51,7 @@ export default function NewsletterForm() {
           뉴스레터 구독
         </h2>
         <p className="text-gray-600 mb-8">
-          (사)러브아프리카의 최신 업데이트된 뉴스를 이메일로 받아보세요
+          (사)러브아프리카의 업데이트된 최신 뉴스를 이메일로 받아보세요
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-3 mb-4">

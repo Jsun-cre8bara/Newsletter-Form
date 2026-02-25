@@ -8,11 +8,11 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-gray-900 hover:text-gray-700">
             <Image
-              src="/img_upload/헤더이미지/TEXT logo 001 wide.jpg"
+              src="/img_upload/헤더이미지/LOA_logo_scan.jpg"
               alt="LOA 로고"
               width={52}
               height={52}
-              className="rounded-md object-cover"
+              className="rounded-md object-contain"
               priority
             />
             <span className="text-xl md:text-2xl">(사)러브아프리카 뉴스레터</span>

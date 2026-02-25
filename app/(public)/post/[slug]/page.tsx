@@ -86,12 +86,12 @@ export default async function PostPage({ params }: { params: { slug: string } })
             </span>
 
             {/* Title */}
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 md:text-gray-900 mb-4" style={{ color: 'var(--foreground)' }}>
               {post.title}
             </h1>
 
             {/* Meta Info */}
-            <div className="flex items-center gap-6 text-sm text-gray-600 mb-8 pb-8 border-b">
+            <div className="flex items-center gap-6 text-sm mb-8 pb-8 border-b" style={{ color: 'var(--foreground)' }}>
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
                 <span>{formattedDate}</span>
@@ -103,7 +103,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
             </div>
 
             {/* Description */}
-            <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+            <p className="text-xl mb-8 leading-relaxed" style={{ color: 'var(--foreground)' }}>
               {post.description}
             </p>
 

@@ -174,7 +174,7 @@ export default function NewPostPage() {
           content: data.content,
           thumbnail_url: thumbnailUrl,
           category: data.category,
-          read_time: data.read_time,
+          read_time: '5분 읽기',
           slug: slug,
           published: data.published,
         }),
@@ -263,33 +263,20 @@ export default function NewPostPage() {
             )}
           </div>
 
-          {/* Category & Read Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                카테고리 *
-              </label>
-              <input
-                type="text"
-                {...register('category', { required: '카테고리를 입력해주세요' })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="개발, 디자인, UX 등"
-              />
-              {errors.category && (
-                <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                읽는 시간
-              </label>
-              <input
-                type="text"
-                {...register('read_time')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="5분 읽기"
-              />
-            </div>
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              카테고리 *
+            </label>
+            <input
+              type="text"
+              {...register('category', { required: '카테고리를 입력해주세요' })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="개발, 디자인, UX 등"
+            />
+            {errors.category && (
+              <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+            )}
           </div>
 
           {/* Thumbnail */}
