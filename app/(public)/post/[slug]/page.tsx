@@ -21,6 +21,17 @@ const SUPABASE_STORAGE_BASE_URL = 'https://ozeslhrhmrxmepdphxzy.supabase.co/stor
 
 // 본문에서 이미지 파일명을 마크다운 이미지 형식으로 변환
 function transformImageReferences(content: string): string {
+  // 이미 올바른 마크다운 이미지 형식이 있는지 확인
+  // 패턴: ![텍스트](http://... 또는 https://...)
+  const hasValidMarkdownImages = /!\[[^\]]*\]\(https?:\/\/[^\)]+\)/g.test(content)
+  
+  // 올바른 마크다운 이미지가 있으면 변환하지 않고 원본 그대로 반환
+  if (hasValidMarkdownImages) {
+    console.log('✅ 이미 올바른 마크다운 이미지가 있어서 변환하지 않습니다.')
+    return content
+  }
+  
+  console.log('🔄 이미지 파일명을 URL로 변환합니다.')
   let transformed = content
   
   // 각 이미지 파일명을 마크다운 이미지 형식으로 변환
