@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { ArrowLeft, Save, Upload, Trash2, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
-import { adminSupabase, uploadImage, deleteImage } from '@/lib/supabase'
 import { Post, PostFormData } from '@/lib/types'
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
@@ -31,17 +30,14 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   }, [params.id])
 
   const fetchPost = async () => {
-    const { data, error } = await adminSupabase
-      .from('posts')
-      .select('*')
-      .eq('id', params.id)
-      .single()
-
-    if (error) {
-      console.error('Error fetching post:', error)
-      setError('포스트를 불러올 수 없습니다')
+    const response = await fetch(`/api/posts/${params.id}`)
+    if (!response.ok) {
+      const errorData = await response.json()
+      setError(errorData.error || '포스트를 불러올 수 없습니다')
       return
     }
+
+    const { data } = await response.json()
 
     setPost(data)
     setThumbnailPreview(data.thumbnail_url)
@@ -179,9 +175,12 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
       }
 
       // Update post
-      const { error: updateError } = await adminSupabase
-        .from('posts')
-        .update({
+      const response = await fetch(`/api/posts/${params.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           title: data.title,
           description: data.description,
           content: data.content,
@@ -190,11 +189,13 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
           read_time: data.read_time,
           slug: slug,
           published: data.published,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', params.id)
+        }),
+      })
 
-      if (updateError) throw updateError
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '포스트 수정에 실패했습니다')
+      }
 
       router.push('/admin/posts')
       router.refresh()
@@ -213,18 +214,13 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     setError(null)
 
     try {
-      // Delete thumbnail if exists
-      if (post?.thumbnail_url) {
-        await deleteImage(post.thumbnail_url)
+      const response = await fetch(`/api/posts/${params.id}`, {
+        method: 'DELETE',
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '포스트 삭제에 실패했습니다')
       }
-
-      // Delete post
-      const { error: deleteError } = await adminSupabase
-        .from('posts')
-        .delete()
-        .eq('id', params.id)
-
-      if (deleteError) throw deleteError
 
       router.push('/admin/posts')
       router.refresh()
