@@ -8,7 +8,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-gray-900 hover:text-gray-700">
             <Image
-              src="/img_upload/헤더이미지/LOA_logo_scan.jpg"
+              src="/img_upload/헤더이미지/LOA%20logo.png"
               alt="LOA 로고"
               width={52}
               height={52}
