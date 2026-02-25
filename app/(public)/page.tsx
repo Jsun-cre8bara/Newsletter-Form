@@ -34,7 +34,7 @@ async function getHeaderConfig(): Promise<HeaderConfig | null> {
   return data
 }
 
-export const revalidate = 60 // Revalidate every 60 seconds
+export const revalidate = 0 // 0 = 캐시 없이 항상 최신 데이터 가져오기 (개발 중)
 
 export default async function HomePage() {
   const [posts, headerConfig] = await Promise.all([
