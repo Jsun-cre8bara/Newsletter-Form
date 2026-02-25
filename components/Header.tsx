@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
+import Image from 'next/image'
 
 export default function Header() {
   return (
@@ -7,8 +7,15 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-gray-900 hover:text-gray-700">
-            <BookOpen className="w-8 h-8" />
-            <span>블로그</span>
+            <Image
+              src="/img_upload/헤더이미지/TEXT logo 001 wide.jpg"
+              alt="LOA 로고"
+              width={52}
+              height={52}
+              className="rounded-md object-cover"
+              priority
+            />
+            <span className="text-xl md:text-2xl">(사)러브아프리카 뉴스레터</span>
           </Link>
           <nav className="flex items-center gap-6">
             <Link href="/" className="text-gray-600 hover:text-gray-900 transition">

@@ -16,11 +16,27 @@ async function getSubscribers() {
   return data || []
 }
 
+async function getSendLogs() {
+  const { data, error } = await adminSupabase
+    .from('newsletter_send_logs')
+    .select('*')
+    .order('sent_at', { ascending: false })
+    .limit(10)
+
+  if (error) {
+    console.warn('Newsletter send log table missing or query failed:', error.message)
+    return []
+  }
+
+  return data || []
+}
+
 export const revalidate = 0
 
 export default async function SubscribersPage() {
   const subscribers = await getSubscribers()
   const activeSubscribers = subscribers.filter(s => s.active)
+  const sendLogs = await getSendLogs()
 
   return (
     <div>
@@ -135,6 +151,63 @@ export default async function SubscribersPage() {
           <ExportCSVButton subscribers={subscribers} />
         </div>
       )}
+
+      {/* Send Logs */}
+      <div className="mt-10">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">최근 뉴스레터 발송 이력</h2>
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {sendLogs.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              아직 발송 이력이 없습니다
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    포스트
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    발송 결과
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    발송 시간
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {sendLogs.map((log: any) => (
+                  <tr key={log.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{log.post_title}</div>
+                      <a
+                        href={log.post_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800 break-all"
+                      >
+                        {log.post_url}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      총 {log.total_count}명 / 성공 {log.sent_count}명 / 실패 {log.failed_count}명
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(log.sent_at).toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

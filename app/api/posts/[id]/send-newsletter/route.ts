@@ -125,6 +125,25 @@ export async function POST(
     const successCount = sendResults.filter((r) => r.status === 'fulfilled').length
     const failed = sendResults.length - successCount
 
+    // 발송 이력 저장 (테이블이 없는 초기 상태에서도 발송 자체는 성공 처리)
+    const { error: logError } = await adminSupabase
+      .from('newsletter_send_logs')
+      .insert([
+        {
+          post_id: post.id,
+          post_title: post.title,
+          post_url: postUrl,
+          total_count: emails.length,
+          sent_count: successCount,
+          failed_count: failed,
+          sent_at: new Date().toISOString(),
+        },
+      ])
+
+    if (logError) {
+      console.warn('⚠️ [API] 발송 이력 저장 실패:', logError.message)
+    }
+
     return NextResponse.json({
       success: true,
       postId: post.id,
