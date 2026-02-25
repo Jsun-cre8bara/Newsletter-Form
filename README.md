@@ -53,6 +53,9 @@ npm install
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+RESEND_API_KEY=your-resend-api-key
+NEWSLETTER_FROM_EMAIL=news@your-domain.com
+SITE_URL=https://your-deployed-domain.com
 \`\`\`
 
 자세한 내용은 `ENV_SETUP.md` 참고

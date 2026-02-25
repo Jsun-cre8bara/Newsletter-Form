@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, Save, Upload, Trash2, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Save, Upload, Trash2, Image as ImageIcon, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { Post, PostFormData } from '@/lib/types'
 
@@ -15,6 +15,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<Post | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [uploadingContentImage, setUploadingContentImage] = useState(false)
+  const [isSendingNewsletter, setIsSendingNewsletter] = useState(false)
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null)
   
   // 이미지 경로 관리를 위한 state
@@ -232,6 +233,38 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     }
   }
 
+  const handleSendNewsletter = async () => {
+    if (!post) return
+    if (!post.published) {
+      alert('게시된 포스트만 발송할 수 있습니다. 먼저 게시 상태로 저장해주세요.')
+      return
+    }
+
+    const confirmed = confirm('이 포스트를 활성 구독자에게 이메일로 발송할까요?')
+    if (!confirmed) return
+
+    setIsSendingNewsletter(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`/api/posts/${params.id}/send-newsletter`, {
+        method: 'POST',
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '뉴스레터 발송에 실패했습니다')
+      }
+
+      alert(`발송 완료: 총 ${result.total}명 중 ${result.sent}명 성공, ${result.failed}명 실패`)
+    } catch (err) {
+      console.error('Error sending newsletter:', err)
+      setError(err instanceof Error ? err.message : '뉴스레터 발송에 실패했습니다')
+    } finally {
+      setIsSendingNewsletter(false)
+    }
+  }
+
   if (!post) {
     return <div className="text-center py-8">로딩 중...</div>
   }
@@ -437,6 +470,15 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
             </button>
             
             <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={handleSendNewsletter}
+                disabled={isSendingNewsletter || isSubmitting || isDeleting}
+                className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                <Mail className="w-5 h-5" />
+                {isSendingNewsletter ? '발송 중...' : '구독자 발송'}
+              </button>
               <Link
                 href="/admin/posts"
                 className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition"
