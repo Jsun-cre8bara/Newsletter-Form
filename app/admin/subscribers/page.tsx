@@ -1,6 +1,7 @@
 import { adminSupabase } from '@/lib/supabase'
-import { Mail, Calendar } from 'lucide-react'
+import { Mail, Calendar, Send } from 'lucide-react'
 import ExportCSVButton from '@/components/ExportCSVButton'
+import NewsletterComposeButton from '@/components/NewsletterComposeButton'
 
 async function getSubscribers() {
   const { data, error } = await adminSupabase
@@ -145,9 +146,10 @@ export default async function SubscribersPage() {
         )}
       </div>
 
-      {/* Export Button */}
+      {/* Actions */}
       {subscribers.length > 0 && (
-        <div className="mt-6">
+        <div className="mt-6 flex items-center gap-4">
+          <NewsletterComposeButton activeSubscriberCount={activeSubscribers.length} />
           <ExportCSVButton subscribers={subscribers} />
         </div>
       )}
