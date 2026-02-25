@@ -25,6 +25,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<PostFormData>()
   
   const contentValue = watch('content')
+  const [thumbnailUrl, setThumbnailUrl] = useState('')
 
   useEffect(() => {
     fetchPost()
@@ -45,6 +46,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
 
     setPost(data)
     setThumbnailPreview(data.thumbnail_url)
+    setThumbnailUrl(data.thumbnail_url || '')
     reset({
       title: data.title,
       slug: data.slug,
@@ -58,13 +60,34 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setThumbnailPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+    
+    // 작성자와 날짜 확인
+    if (!imageAuthor || !imageDate) {
+      alert('⚠️ 작성자와 날짜를 먼저 입력해주세요!')
+      e.target.value = ''
+      return
     }
+
+    console.log('🖼️ 썸네일 파일 선택됨:', file?.name, file?.size, 'bytes')
+    
+    // 로컬 경로 생성
+    const relativePath = `img_upload/${imageAuthor}/${imageDate}/${file.name}`
+    
+    // GitHub raw URL 생성
+    const githubRawUrl = `https://raw.githubusercontent.com/Jsun-cre8bara/Newsletter-Form/main/${relativePath}`
+    setThumbnailUrl(githubRawUrl)
+    
+    console.log('✅ 썸네일 URL 생성:', githubRawUrl)
+    
+    // 미리보기 생성
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setThumbnailPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+    
+    alert(`✅ 썸네일 경로가 설정되었습니다!\n\n저장할 위치:\n${relativePath}\n\n포스트 저장 전에 위 경로에 이미지 파일을 저장하고 Git에 커밋해주세요.`)
   }
 
   // Handle content image upload
@@ -135,22 +158,9 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     setError(null)
 
     try {
-      let thumbnailUrl = post?.thumbnail_url || ''
-
-      // Upload new thumbnail if provided
-      if (data.thumbnail && data.thumbnail[0]) {
-        // Delete old image if exists
-        if (thumbnailUrl) {
-          await deleteImage(thumbnailUrl)
-        }
-
-        const uploadedUrl = await uploadImage(data.thumbnail[0])
-        if (uploadedUrl) {
-          thumbnailUrl = uploadedUrl
-        } else {
-          throw new Error('이미지 업로드에 실패했습니다')
-        }
-      }
+      // 썸네일 URL 사용 (state에 있는 URL 또는 기존 URL)
+      const finalThumbnailUrl = thumbnailUrl || post?.thumbnail_url || ''
+      console.log('✅ 썸네일 URL:', finalThumbnailUrl)
 
       // Update slug if changed
       let slug = data.slug
@@ -176,7 +186,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
           title: data.title,
           description: data.description,
           content: data.content,
-          thumbnail_url: thumbnailUrl,
+          thumbnail_url: finalThumbnailUrl,
           category: data.category,
           read_time: data.read_time,
           slug: slug,
