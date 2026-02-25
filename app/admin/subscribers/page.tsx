@@ -2,6 +2,7 @@ import { adminSupabase } from '@/lib/supabase'
 import { Mail, Calendar, Send } from 'lucide-react'
 import ExportCSVButton from '@/components/ExportCSVButton'
 import NewsletterComposeButton from '@/components/NewsletterComposeButton'
+import DeleteSubscriberButton from '@/components/DeleteSubscriberButton'
 
 async function getSubscribers() {
   const { data, error } = await adminSupabase
@@ -106,6 +107,9 @@ export default async function SubscribersPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   구독 날짜
                 </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  작업
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -138,6 +142,12 @@ export default async function SubscribersPage() {
                       hour: '2-digit',
                       minute: '2-digit'
                     })}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <DeleteSubscriberButton
+                      subscriberId={subscriber.id}
+                      email={subscriber.email}
+                    />
                   </td>
                 </tr>
               ))}
