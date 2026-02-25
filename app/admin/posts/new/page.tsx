@@ -15,6 +15,10 @@ export default function NewPostPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [uploadingContentImage, setUploadingContentImage] = useState(false)
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null)
+  
+  // 이미지 경로 관리를 위한 state
+  const [imageAuthor, setImageAuthor] = useState('')
+  const [imageDate, setImageDate] = useState('')
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<PostFormData>({
     defaultValues: {
@@ -47,50 +51,57 @@ export default function NewPostPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // 작성자와 날짜 확인
+    if (!imageAuthor || !imageDate) {
+      alert('⚠️ 작성자와 날짜를 먼저 입력해주세요!')
+      e.target.value = ''
+      return
+    }
+
     setUploadingContentImage(true)
-    console.log('📸 본문 이미지 업로드 시작:', file.name)
+    console.log('📸 본문 이미지 경로 생성:', file.name)
 
     try {
-      const imageUrl = await uploadImage(file)
+      // 로컬 경로 생성
+      const relativePath = `img_upload/${imageAuthor}/${imageDate}/${file.name}`
       
-      if (imageUrl) {
-        console.log('✅ 본문 이미지 업로드 성공:', imageUrl)
+      // GitHub raw URL 생성
+      const githubRawUrl = `https://raw.githubusercontent.com/Jsun-cre8bara/Newsletter-Form/main/${relativePath}`
+      
+      console.log('✅ GitHub URL 생성:', githubRawUrl)
+      
+      // 마크다운 형식으로 이미지 삽입
+      const imageMarkdown = `\n![${file.name.split('.')[0]}](${githubRawUrl})\n`
+      
+      // 현재 커서 위치에 삽입
+      const textarea = contentTextareaRef.current
+      if (textarea) {
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const currentContent = contentValue || ''
+        const newContent = 
+          currentContent.substring(0, start) + 
+          imageMarkdown + 
+          currentContent.substring(end)
         
-        // 마크다운 형식으로 이미지 삽입
-        const imageMarkdown = `\n![${file.name.split('.')[0]}](${imageUrl})\n`
+        setValue('content', newContent)
         
-        // 현재 커서 위치에 삽입
-        const textarea = contentTextareaRef.current
-        if (textarea) {
-          const start = textarea.selectionStart
-          const end = textarea.selectionEnd
-          const currentContent = contentValue || ''
-          const newContent = 
-            currentContent.substring(0, start) + 
-            imageMarkdown + 
-            currentContent.substring(end)
-          
-          setValue('content', newContent)
-          
-          // 커서를 삽입된 마크다운 뒤로 이동
-          setTimeout(() => {
-            textarea.focus()
-            const newPosition = start + imageMarkdown.length
-            textarea.setSelectionRange(newPosition, newPosition)
-          }, 0)
-          
-          alert('✅ 이미지가 본문에 삽입되었습니다!')
-        } else {
-          // textarea ref가 없으면 끝에 추가
-          setValue('content', (contentValue || '') + imageMarkdown)
-          alert('✅ 이미지가 본문 끝에 추가되었습니다!')
-        }
+        // 커서를 삽입된 마크다운 뒤로 이동
+        setTimeout(() => {
+          textarea.focus()
+          const newPosition = start + imageMarkdown.length
+          textarea.setSelectionRange(newPosition, newPosition)
+        }, 0)
+        
+        alert(`✅ 이미지 경로가 본문에 추가되었습니다!\n\n저장할 위치:\n${relativePath}\n\n포스트 저장 전에 위 경로에 이미지 파일을 저장하고 Git에 커밋해주세요.`)
       } else {
-        throw new Error('이미지 업로드에 실패했습니다')
+        // textarea ref가 없으면 끝에 추가
+        setValue('content', (contentValue || '') + imageMarkdown)
+        alert(`✅ 이미지 경로가 본문 끝에 추가되었습니다!\n\n저장할 위치:\n${relativePath}`)
       }
     } catch (error) {
-      console.error('❌ 본문 이미지 업로드 실패:', error)
-      alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
+      console.error('❌ 이미지 경로 생성 실패:', error)
+      alert('이미지 경로 생성에 실패했습니다.')
     } finally {
       setUploadingContentImage(false)
       // 파일 input 초기화
@@ -299,6 +310,36 @@ export default function NewPostPage() {
                 />
               )}
             </div>
+          </div>
+
+          {/* Image Path Settings */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              📁 이미지 저장 경로 설정
+            </label>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <input
+                  type="text"
+                  value={imageAuthor}
+                  onChange={(e) => setImageAuthor(e.target.value)}
+                  placeholder="작성자 (예: kim, hwang)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  value={imageDate}
+                  onChange={(e) => setImageDate(e.target.value)}
+                  placeholder="날짜 (예: 0212, 0312)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-600">
+              💾 저장 경로: <code className="bg-white px-2 py-1 rounded">img_upload/{imageAuthor || '작성자'}/{imageDate || '날짜'}/파일명.jpg</code>
+            </p>
           </div>
 
           {/* Content */}
