@@ -42,15 +42,15 @@ export default async function SubscribersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">구독자 관리</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">구독자 관리</h1>
         <div className="text-sm text-gray-600">
           총 {activeSubscribers.length}명의 활성 구독자
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="bg-blue-100 p-3 rounded-lg">
@@ -95,70 +95,81 @@ export default async function SubscribersPage() {
             <p className="text-gray-500 text-lg">아직 구독자가 없습니다</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  이메일
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  상태
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  구독 날짜
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  작업
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {subscribers.map((subscriber) => (
-                <tr key={subscriber.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-100 p-2 rounded-full">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">
-                        {subscriber.email}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      subscriber.active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {subscriber.active ? '활성' : '비활성'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(subscriber.subscribed_at).toLocaleDateString('ko-KR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <DeleteSubscriberButton
-                      subscriberId={subscriber.id}
-                      email={subscriber.email}
-                    />
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px]">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    이메일
+                  </th>
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    상태
+                  </th>
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    구독 날짜
+                  </th>
+                  <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    작업
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {subscribers.map((subscriber) => (
+                  <tr key={subscriber.id} className="hover:bg-gray-50">
+                    <td className="px-4 md:px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                          <Mail className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 break-all">
+                          {subscriber.email}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                        subscriber.active 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {subscriber.active ? '활성' : '비활성'}
+                      </span>
+                    </td>
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span className="hidden md:inline">
+                        {new Date(subscriber.subscribed_at).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <span className="md:hidden">
+                        {new Date(subscriber.subscribed_at).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </td>
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right">
+                      <DeleteSubscriberButton
+                        subscriberId={subscriber.id}
+                        email={subscriber.email}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       {/* Actions */}
       {subscribers.length > 0 && (
-        <div className="mt-6 flex items-center gap-4">
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <NewsletterComposeButton activeSubscriberCount={activeSubscribers.length} />
           <ExportCSVButton subscribers={subscribers} />
         </div>
@@ -166,14 +177,15 @@ export default async function SubscribersPage() {
 
       {/* Send Logs */}
       <div className="mt-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">최근 뉴스레터 발송 이력</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">최근 뉴스레터 발송 이력</h2>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {sendLogs.length === 0 ? (
             <div className="text-center py-10 text-gray-500">
               아직 발송 이력이 없습니다
             </div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px]">
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -216,7 +228,8 @@ export default async function SubscribersPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           )}
         </div>
       </div>

@@ -38,10 +38,10 @@ export default function LogoutButton() {
     <button
       onClick={handleLogout}
       disabled={isLoading}
-      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
     >
-      <LogOut className="w-5 h-5" />
-      {isLoading ? '로그아웃 중...' : '로그아웃'}
+      <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+      <span className="hidden sm:inline">{isLoading ? '로그아웃 중...' : '로그아웃'}</span>
     </button>
   )
 }
