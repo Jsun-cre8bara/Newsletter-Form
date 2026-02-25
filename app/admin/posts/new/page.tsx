@@ -17,8 +17,7 @@ export default function NewPostPage() {
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null)
   
   // 이미지 경로 관리를 위한 state
-  const [imageAuthor, setImageAuthor] = useState('')
-  const [imageDate, setImageDate] = useState('')
+  const [imagePath, setImagePath] = useState('')
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<PostFormData>({
     defaultValues: {
@@ -36,17 +35,17 @@ export default function NewPostPage() {
     const file = e.target.files?.[0]
     if (!file) return
     
-    // 작성자와 날짜 확인
-    if (!imageAuthor || !imageDate) {
-      alert('⚠️ 작성자와 날짜를 먼저 입력해주세요!')
+    // 경로 확인
+    if (!imagePath.trim()) {
+      alert('⚠️ 이미지 저장 경로를 먼저 입력해주세요!')
       e.target.value = ''
       return
     }
 
     console.log('🖼️ 썸네일 파일 선택됨:', file?.name, file?.size, 'bytes')
     
-    // 로컬 경로 생성
-    const relativePath = `img_upload/${imageAuthor}/${imageDate}/${file.name}`
+    // 로컬 경로 생성 (img_upload는 고정)
+    const relativePath = `img_upload/${imagePath}/${file.name}`
     
     // GitHub raw URL 생성
     const githubRawUrl = `https://raw.githubusercontent.com/Jsun-cre8bara/Newsletter-Form/main/${relativePath}`
@@ -69,9 +68,9 @@ export default function NewPostPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // 작성자와 날짜 확인
-    if (!imageAuthor || !imageDate) {
-      alert('⚠️ 작성자와 날짜를 먼저 입력해주세요!')
+    // 경로 확인
+    if (!imagePath.trim()) {
+      alert('⚠️ 이미지 저장 경로를 먼저 입력해주세요!')
       e.target.value = ''
       return
     }
@@ -80,8 +79,8 @@ export default function NewPostPage() {
     console.log('📸 본문 이미지 경로 생성:', file.name)
 
     try {
-      // 로컬 경로 생성
-      const relativePath = `img_upload/${imageAuthor}/${imageDate}/${file.name}`
+      // 로컬 경로 생성 (img_upload는 고정)
+      const relativePath = `img_upload/${imagePath}/${file.name}`
       
       // GitHub raw URL 생성
       const githubRawUrl = `https://raw.githubusercontent.com/Jsun-cre8bara/Newsletter-Form/main/${relativePath}`
@@ -326,28 +325,20 @@ export default function NewPostPage() {
             <label className="block text-sm font-medium text-gray-700 mb-3">
               📁 이미지 저장 경로 설정
             </label>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <input
-                  type="text"
-                  value={imageAuthor}
-                  onChange={(e) => setImageAuthor(e.target.value)}
-                  placeholder="작성자 (예: kim, hwang)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <input
-                  type="text"
-                  value={imageDate}
-                  onChange={(e) => setImageDate(e.target.value)}
-                  placeholder="날짜 (예: 0212, 0312)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+            <div className="mb-3">
+              <input
+                type="text"
+                value={imagePath}
+                onChange={(e) => setImagePath(e.target.value)}
+                placeholder="예: kim/0225/01 또는 hwang/0312/mission"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
             <p className="text-xs text-gray-600">
-              💾 저장 경로: <code className="bg-white px-2 py-1 rounded">img_upload/{imageAuthor || '작성자'}/{imageDate || '날짜'}/파일명.jpg</code>
+              💾 저장 경로: <code className="bg-white px-2 py-1 rounded">img_upload/{imagePath || '경로'}/파일명.jpg</code>
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              💡 팁: 슬래시(/)로 하위 폴더를 구분하세요. img_upload/ 는 자동으로 추가됩니다.
             </p>
           </div>
 
