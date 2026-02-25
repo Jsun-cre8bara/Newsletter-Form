@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Clock, Calendar } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { Post } from '@/lib/types'
 
 interface PostCardProps {
@@ -53,10 +53,6 @@ export default function PostCard({ post }: PostCardProps) {
           <div className="flex items-center gap-1">
             <Calendar className="w-4 h-4" />
             <span>{formattedDate}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>{post.read_time}</span>
           </div>
         </div>
       </div>
