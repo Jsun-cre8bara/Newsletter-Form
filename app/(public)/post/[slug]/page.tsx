@@ -7,68 +7,6 @@ import { supabase } from '@/lib/supabase'
 import { Post } from '@/lib/types'
 import NewsletterForm from '@/components/NewsletterForm'
 
-// 이미지 파일명 매핑 (Git 파일명 → Supabase Storage 파일명)
-const imageMapping: Record<string, string> = {
-  '01_kim': '1770869412569-4f87fi.jpg',
-  '02_kim': '1770869502060-zppflc.jpg',
-  '03_kim': '1770869563419-pmpisk.jpg',
-  '04_kim': '1770869558293-gxu2e8.jpg',
-  '05_kim': '1770869532678-1rahev.jpg',
-  '06_kim': '1770869548704-h6qqbf.jpg',
-}
-
-const SUPABASE_STORAGE_BASE_URL = 'https://ozeslhrhmrxmepdphxzy.supabase.co/storage/v1/object/public/blog-images'
-
-// 본문에서 이미지 파일명을 마크다운 이미지 형식으로 변환
-function transformImageReferences(content: string): string {
-  // 이미 올바른 마크다운 이미지 형식이 있는지 확인
-  // 패턴: ![텍스트](http://... 또는 https://...)
-  const hasValidMarkdownImages = /!\[[^\]]*\]\(https?:\/\/[^\)]+\)/g.test(content)
-  
-  // 올바른 마크다운 이미지가 있으면 변환하지 않고 원본 그대로 반환
-  if (hasValidMarkdownImages) {
-    console.log('✅ 이미 올바른 마크다운 이미지가 있어서 변환하지 않습니다.')
-    return content
-  }
-  
-  console.log('🔄 이미지 파일명을 URL로 변환합니다.')
-  let transformed = content
-  
-  // 각 이미지 파일명을 마크다운 이미지 형식으로 변환
-  Object.entries(imageMapping).forEach(([fileName, storageFileName]) => {
-    const imageUrl = `${SUPABASE_STORAGE_BASE_URL}/${storageFileName}`
-    const markdownImage = `![${fileName}](${imageUrl})`
-    
-    // 패턴 1: img_upload 경로가 있는 경우 변환
-    transformed = transformed.replace(
-      new RegExp(`img_upload[^\\s]*${fileName}[^\\s]*`, 'g'),
-      imageUrl
-    )
-    
-    // 패턴 2: 단독으로 있는 경우 (이미 마크다운 형식이 아닌 경우만)
-    // 이미 ![fileName]( 형태가 있으면 건너뛰기
-    if (!transformed.includes(`![${fileName}](`)) {
-      // 줄 단위로 처리하여 더 정확하게 매칭
-      const lines = transformed.split('\n')
-      const transformedLines = lines.map(line => {
-        // 이미 마크다운 이미지 형식이 포함된 줄은 그대로 유지
-        if (line.includes(`![${fileName}](`)) {
-          return line
-        }
-        // 단독으로 있는 fileName을 찾아서 변환
-        // 단어 경계를 사용하여 정확하게 매칭
-        return line.replace(
-          new RegExp(`(^|\\s)${fileName}(?=\\s|$|:)`, 'g'),
-          `$1${markdownImage}`
-        )
-      })
-      transformed = transformedLines.join('\n')
-    }
-  })
-  
-  return transformed
-}
-
 async function getPost(slug: string): Promise<Post | null> {
   const { data, error } = await supabase
     .from('posts')
@@ -184,7 +122,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
                   )
                 }}
               >
-                {transformImageReferences(post.content)}
+                {post.content}
               </ReactMarkdown>
             </div>
           </div>
