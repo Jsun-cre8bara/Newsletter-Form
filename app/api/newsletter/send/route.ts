@@ -233,7 +233,8 @@ export async function POST(request: NextRequest) {
 
     // 발송 이력 저장
     const origin = getSiteOrigin(request)
-    const { error: logError } = await adminSupabase
+    console.log('💾 [API] 발송 이력 저장 시작...')
+    const { data: logData, error: logError } = await adminSupabase
       .from('newsletter_send_logs')
       .insert([
         {
@@ -246,9 +247,18 @@ export async function POST(request: NextRequest) {
           sent_at: new Date().toISOString(),
         },
       ])
+      .select()
 
     if (logError) {
-      console.warn('⚠️ [API] 발송 이력 저장 실패:', logError.message)
+      console.error('❌ [API] 발송 이력 저장 실패:', {
+        message: logError.message,
+        code: logError.code,
+        details: logError.details,
+        hint: logError.hint,
+        fullError: logError,
+      })
+    } else {
+      console.log('✅ [API] 발송 이력 저장 성공:', logData)
     }
 
     return NextResponse.json({
