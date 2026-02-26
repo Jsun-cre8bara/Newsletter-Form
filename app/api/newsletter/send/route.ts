@@ -51,9 +51,11 @@ function markdownToHtml(markdown: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 [API] 뉴스레터 발송 API 호출 시작')
   try {
     // 인증 확인
     const session = request.cookies.get('admin_session')
+    console.log('🔐 [API] 세션 확인:', session ? '인증됨' : '인증 필요')
     if (!session || session.value !== 'authenticated') {
       return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
     }
@@ -101,12 +103,15 @@ export async function POST(request: NextRequest) {
     }
 
     const emails = (subscribers || []).map((s) => s.email).filter(Boolean)
+    console.log('📋 [API] 활성 구독자 조회 결과:', emails.length, '명')
     if (emails.length === 0) {
+      console.warn('⚠️ [API] 활성 구독자가 없습니다')
       return NextResponse.json(
         { error: '활성 구독자가 없습니다' },
         { status: 400 }
       )
     }
+    console.log('📧 [API] 발송 대상 이메일:', emails)
 
     const resend = new Resend(resendApiKey)
     
