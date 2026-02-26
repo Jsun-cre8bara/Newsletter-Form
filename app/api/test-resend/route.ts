@@ -15,12 +15,15 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
+    const expectedKey = 're_DVCAb6RN_9KuT6Q6PyFyu6txoPxvC5nQE'
     console.log('🔑 [TEST] API KEY 확인:', {
       exists: !!resendApiKey,
       length: resendApiKey.length,
+      expectedLength: expectedKey.length,
       prefix: resendApiKey.substring(0, 15),
-      expected: 're_DVCAb6RN_9KuT',
-      matches: resendApiKey.substring(0, 15) === 're_DVCAb6RN_9KuT',
+      expectedPrefix: expectedKey.substring(0, 15),
+      matches: resendApiKey === expectedKey,
+      fullKey: resendApiKey, // 디버깅용 전체 키 출력
     })
 
     console.log('📦 [TEST] Resend 인스턴스 생성 시작...')
@@ -58,8 +61,13 @@ export async function GET(request: NextRequest) {
       apiKeyInfo: {
         exists: true,
         length: resendApiKey.length,
+        expectedLength: 51,
         prefix: resendApiKey.substring(0, 15),
-        matchesExpected: resendApiKey.substring(0, 15) === 're_DVCAb6RN_9KuT',
+        expectedPrefix: 're_DVCAb6RN_9KuT',
+        matchesExpected: resendApiKey === 're_DVCAb6RN_9KuT6Q6PyFyu6txoPxvC5nQE',
+        fullKey: resendApiKey, // 디버깅용 - 실제 로드된 전체 키
+        hasWhitespace: resendApiKey.trim() !== resendApiKey,
+        trimmedLength: resendApiKey.trim().length,
       },
       resendInstance: {
         created: !!resend,
@@ -84,7 +92,11 @@ export async function GET(request: NextRequest) {
       apiKeyInfo: {
         exists: !!process.env.RESEND_API_KEY,
         length: process.env.RESEND_API_KEY?.length || 0,
+        expectedLength: 51,
         prefix: process.env.RESEND_API_KEY?.substring(0, 15) || '없음',
+        fullKey: process.env.RESEND_API_KEY || '없음', // 디버깅용
+        hasWhitespace: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() !== process.env.RESEND_API_KEY : false,
+        trimmedLength: process.env.RESEND_API_KEY?.trim().length || 0,
       },
     }, { status: 500 })
   }
