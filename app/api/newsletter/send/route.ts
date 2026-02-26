@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
           const result = await resend.emails.send({
             from: 'news@loveafrica.or.kr',
             to: email,
-            reply_to: 'loveafrica1004@gmail.com',
+            replyTo: 'loveafrica1004@gmail.com',
             subject,
             html,
           })
