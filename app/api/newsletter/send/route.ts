@@ -27,6 +27,10 @@ function getSiteOrigin(request: NextRequest) {
 function markdownToHtml(markdown: string): string {
   let html = markdown
   
+  // 이미지 변환 (먼저 처리해야 링크 변환과 충돌하지 않음)
+  // ![alt](url) 형식을 <img> 태그로 변환
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; margin: 16px 0; border-radius: 8px;" />')
+  
   // 헤더 변환
   html = html.replace(/^### (.*$)/gim, '<h3 style="margin: 16px 0 8px; font-size: 18px; font-weight: bold;">$1</h3>')
   html = html.replace(/^## (.*$)/gim, '<h2 style="margin: 20px 0 12px; font-size: 20px; font-weight: bold;">$1</h2>')
@@ -35,7 +39,7 @@ function markdownToHtml(markdown: string): string {
   // 볼드
   html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
   
-  // 링크
+  // 링크 (이미지가 아닌 링크만 변환)
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" style="color: #2563eb; text-decoration: underline;">$1</a>')
   
   // 줄바꿈
@@ -234,19 +238,30 @@ export async function POST(request: NextRequest) {
     // 발송 이력 저장
     const origin = getSiteOrigin(request)
     console.log('💾 [API] 발송 이력 저장 시작...')
+    console.log('💾 [API] 저장할 데이터:', {
+      post_id: null,
+      post_title: subject,
+      post_url: linkUrl || origin,
+      total_count: emails.length,
+      sent_count: successCount,
+      failed_count: failed,
+    })
+    
+    const insertData = {
+      post_id: null, // 커스텀 뉴스레터는 post_id가 없음
+      post_title: subject,
+      post_url: linkUrl || origin,
+      total_count: emails.length,
+      sent_count: successCount,
+      failed_count: failed,
+      sent_at: new Date().toISOString(),
+    }
+    
+    console.log('💾 [API] Insert 데이터:', JSON.stringify(insertData, null, 2))
+    
     const { data: logData, error: logError } = await adminSupabase
       .from('newsletter_send_logs')
-      .insert([
-        {
-          post_id: null, // 커스텀 뉴스레터는 post_id가 없음
-          post_title: subject,
-          post_url: linkUrl || origin,
-          total_count: emails.length,
-          sent_count: successCount,
-          failed_count: failed,
-          sent_at: new Date().toISOString(),
-        },
-      ])
+      .insert([insertData])
       .select()
 
     if (logError) {
@@ -255,7 +270,21 @@ export async function POST(request: NextRequest) {
         code: logError.code,
         details: logError.details,
         hint: logError.hint,
-        fullError: logError,
+        fullError: JSON.stringify(logError, null, 2),
+      })
+      
+      // 테이블 존재 여부 확인
+      const { data: tableCheck, error: tableError } = await adminSupabase
+        .from('newsletter_send_logs')
+        .select('id')
+        .limit(1)
+      
+      console.log('💾 [API] 테이블 존재 확인:', {
+        tableCheck,
+        tableError: tableError ? {
+          message: tableError.message,
+          code: tableError.code,
+        } : null,
       })
       
       // 에러 정보를 응답에 포함
@@ -269,6 +298,7 @@ export async function POST(request: NextRequest) {
           message: logError.message,
           code: logError.code,
           hint: logError.hint,
+          details: logError.details,
         },
         warning: '발송은 성공했지만 이력 저장에 실패했습니다',
       })

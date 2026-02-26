@@ -64,19 +64,16 @@ export default function NewsletterComposeModal({
         setError(`이메일은 발송되었지만 이력 저장에 실패했습니다: ${data.logError.message}`)
         // 경고를 표시하지만 새로고침은 실행
         setTimeout(() => {
-          handleClose()
-          window.location.reload()
+          window.location.reload() // 모달 닫기 전에 새로고침
         }, 3000) // 경고 메시지를 보여주기 위해 3초로 연장
         return
       }
 
       setSuccess(true)
       
-      // 2초 후 모달 닫기
+      // 2초 후 새로고침 (모달은 자동으로 닫힘)
       setTimeout(() => {
-        handleClose()
-        // 페이지 새로고침하여 발송 이력 업데이트
-        window.location.reload()
+        window.location.reload() // 모달 닫기 전에 새로고침
       }, 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : '뉴스레터 발송 중 오류가 발생했습니다')
