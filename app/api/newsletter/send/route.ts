@@ -152,6 +152,8 @@ export async function POST(request: NextRequest) {
 
     // 이메일 발송
     console.log('📤 [API] Resend API 호출 시작...')
+    console.log('📋 [API] 발송 대상:', emails)
+    
     const sendResults = await Promise.allSettled(
       emails.map(async (email) => {
         try {
@@ -163,16 +165,19 @@ export async function POST(request: NextRequest) {
             subject,
             html,
           })
-          console.log(`✅ [API] Resend 응답 (${email}):`, result)
+          console.log(`✅ [API] Resend 응답 (${email}):`, JSON.stringify(result, null, 2))
           return result
         } catch (error: any) {
-          console.error(`❌ [API] Resend API 호출 실패 (${email}):`, {
+          const errorDetails = {
             message: error?.message,
             status: error?.status,
+            statusCode: error?.statusCode,
             name: error?.name,
-            stack: error?.stack,
-            fullError: error,
-          })
+            code: error?.code,
+            response: error?.response ? JSON.stringify(error.response) : undefined,
+            fullError: String(error),
+          }
+          console.error(`❌ [API] Resend API 호출 실패 (${email}):`, JSON.stringify(errorDetails, null, 2))
           throw error
         }
       })
@@ -196,7 +201,24 @@ export async function POST(request: NextRequest) {
 
     // 실패한 경우 상세 에러 로그
     if (failed > 0) {
-      console.error(`❌ [API] 총 ${failed}개 이메일 발송 실패:`, failedResults)
+      console.error(`❌ [API] 총 ${failed}개 이메일 발송 실패:`, JSON.stringify(failedResults, null, 2))
+      
+      // 모든 이메일이 실패한 경우 에러 반환
+      if (failed === emails.length) {
+        const firstError = failedResults[0]?.error
+        return NextResponse.json(
+          { 
+            error: '모든 이메일 발송에 실패했습니다',
+            details: failedResults,
+            firstError: firstError ? {
+              message: firstError?.message,
+              status: firstError?.status,
+              statusCode: firstError?.statusCode,
+            } : undefined,
+          },
+          { status: 500 }
+        )
+      }
     }
 
     // 발송 이력 저장
