@@ -68,11 +68,15 @@ export async function POST(request: NextRequest) {
 
     const resendApiKey = process.env.RESEND_API_KEY
     if (!resendApiKey) {
+      console.error('❌ [API] RESEND_API_KEY 환경변수가 설정되지 않았습니다')
       return NextResponse.json(
         { error: 'RESEND_API_KEY 환경변수가 설정되지 않았습니다' },
         { status: 500 }
       )
     }
+
+    // API 키 확인 (보안을 위해 일부만 로깅)
+    console.log('🔑 [API] Resend API 키 확인:', resendApiKey ? `${resendApiKey.substring(0, 10)}...` : '없음')
 
     const { subject, content, linkUrl, linkText } = await request.json()
 
@@ -105,6 +109,13 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = new Resend(resendApiKey)
+    
+    console.log('📧 [API] 이메일 발송 시작:', {
+      구독자수: emails.length,
+      from: 'news@loveafrica.or.kr',
+      reply_to: 'loveafrica1004@gmail.com',
+      subject,
+    })
     
     // 본문을 HTML로 변환
     const contentHtml = markdownToHtml(content)
@@ -140,16 +151,31 @@ export async function POST(request: NextRequest) {
     `
 
     // 이메일 발송
+    console.log('📤 [API] Resend API 호출 시작...')
     const sendResults = await Promise.allSettled(
-      emails.map((email) =>
-        resend.emails.send({
-          from: 'news@loveafrica.or.kr',
-          to: email,
-          reply_to: 'loveafrica1004@gmail.com',
-          subject,
-          html,
-        })
-      )
+      emails.map(async (email) => {
+        try {
+          console.log(`📨 [API] 이메일 발송 시도: ${email}`)
+          const result = await resend.emails.send({
+            from: 'news@loveafrica.or.kr',
+            to: email,
+            reply_to: 'loveafrica1004@gmail.com',
+            subject,
+            html,
+          })
+          console.log(`✅ [API] Resend 응답 (${email}):`, result)
+          return result
+        } catch (error: any) {
+          console.error(`❌ [API] Resend API 호출 실패 (${email}):`, {
+            message: error?.message,
+            status: error?.status,
+            name: error?.name,
+            stack: error?.stack,
+            fullError: error,
+          })
+          throw error
+        }
+      })
     )
 
     // 발송 결과 상세 로깅
