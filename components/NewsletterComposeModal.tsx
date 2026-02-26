@@ -62,6 +62,11 @@ export default function NewsletterComposeModal({
       if (data.logError) {
         console.warn('⚠️ 발송 이력 저장 실패:', data.logError)
         setError(`이메일은 발송되었지만 이력 저장에 실패했습니다: ${data.logError.message}`)
+        // 경고를 표시하지만 새로고침은 실행
+        setTimeout(() => {
+          handleClose()
+          window.location.reload()
+        }, 3000) // 경고 메시지를 보여주기 위해 3초로 연장
         return
       }
 
