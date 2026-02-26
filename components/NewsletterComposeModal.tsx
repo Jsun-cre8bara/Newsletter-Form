@@ -58,6 +58,13 @@ export default function NewsletterComposeModal({
         throw new Error(data.error || '뉴스레터 발송에 실패했습니다')
       }
 
+      // 발송 이력 저장 실패 경고 표시
+      if (data.logError) {
+        console.warn('⚠️ 발송 이력 저장 실패:', data.logError)
+        setError(`이메일은 발송되었지만 이력 저장에 실패했습니다: ${data.logError.message}`)
+        return
+      }
+
       setSuccess(true)
       
       // 2초 후 모달 닫기

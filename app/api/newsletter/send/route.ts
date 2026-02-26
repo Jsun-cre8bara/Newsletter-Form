@@ -257,6 +257,21 @@ export async function POST(request: NextRequest) {
         hint: logError.hint,
         fullError: logError,
       })
+      
+      // 에러 정보를 응답에 포함
+      return NextResponse.json({
+        success: true,
+        total: emails.length,
+        sent: successCount,
+        failed,
+        failedDetails: failed > 0 ? failedResults : undefined,
+        logError: {
+          message: logError.message,
+          code: logError.code,
+          hint: logError.hint,
+        },
+        warning: '발송은 성공했지만 이력 저장에 실패했습니다',
+      })
     } else {
       console.log('✅ [API] 발송 이력 저장 성공:', logData)
     }
@@ -267,6 +282,7 @@ export async function POST(request: NextRequest) {
       sent: successCount,
       failed,
       failedDetails: failed > 0 ? failedResults : undefined,
+      logSaved: true,
     })
   } catch (error) {
     console.error('❌ [API] 뉴스레터 발송 예외:', error)
