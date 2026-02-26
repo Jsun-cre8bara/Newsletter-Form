@@ -110,11 +110,15 @@ export async function POST(request: NextRequest) {
 
     const resend = new Resend(resendApiKey)
     
+    // Resend 인스턴스 생성 확인
+    console.log('📦 [API] Resend 인스턴스 생성 완료')
+    
     console.log('📧 [API] 이메일 발송 시작:', {
       구독자수: emails.length,
       from: 'news@loveafrica.or.kr',
       reply_to: 'loveafrica1004@gmail.com',
       subject,
+      emails: emails,
     })
     
     // 본문을 HTML로 변환
