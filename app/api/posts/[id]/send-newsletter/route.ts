@@ -107,18 +107,32 @@ export async function POST(
       postUrl,
     })
 
-    const html = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
-        <h2 style="margin: 0 0 12px;">${post.title}</h2>
-        <p style="margin: 0 0 16px; color: #4b5563;">${post.description || ''}</p>
-        <p style="margin: 0 0 20px;">새 뉴스레터가 발행되었습니다. 아래 버튼을 눌러 확인해 주세요.</p>
-        <a href="${postUrl}" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;">
-          포스트 보러가기
-        </a>
-        <p style="margin-top:20px;font-size:12px;color:#6b7280;">
-          버튼이 동작하지 않으면 아래 링크를 복사해 접속하세요.<br/>
-          <a href="${postUrl}">${postUrl}</a>
-        </p>
+    // 각 이메일별로 고유한 HTML 생성 함수
+    const generateEmailHtml = (email: string) => `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; max-width: 600px; margin: 0 auto;">
+        <div style="background: #f9fafb; padding: 24px; border-radius: 8px;">
+          <h2 style="margin: 0 0 12px;">${post.title}</h2>
+          <p style="margin: 0 0 16px; color: #4b5563;">${post.description || ''}</p>
+          <p style="margin: 0 0 20px;">새 뉴스레터가 발행되었습니다. 아래 버튼을 눌러 확인해 주세요.</p>
+          <a href="${postUrl}" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;">
+            포스트 보러가기
+          </a>
+          <p style="margin-top:20px;font-size:12px;color:#6b7280;">
+            버튼이 동작하지 않으면 아래 링크를 복사해 접속하세요.<br/>
+            <a href="${postUrl}">${postUrl}</a>
+          </p>
+        </div>
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <p style="font-size: 12px; color: #9ca3af; margin: 0 0 8px 0;">
+            이 뉴스레터는 러브아프리카에서 발송되었습니다.
+          </p>
+          <p style="font-size: 11px; color: #9ca3af; margin: 0;">
+            더 이상 뉴스레터를 받지 않으시려면 
+            <a href="${origin}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #6b7280; text-decoration: underline;">
+              여기를 클릭
+            </a>하여 구독을 취소하세요.
+          </p>
+        </div>
       </div>
     `
 
@@ -128,12 +142,13 @@ export async function POST(
       emails.map(async (email) => {
         try {
           console.log(`📨 [API] 이메일 발송 시도: ${email}`)
+          const emailHtml = generateEmailHtml(email)
           const result = await resend.emails.send({
             from: 'news@loveafrica.or.kr',
             to: email,
             replyTo: 'loveafrica1004@gmail.com',
             subject,
-            html,
+            html: emailHtml,
           })
           console.log(`✅ [API] Resend 응답 (${email}):`, result)
           return result

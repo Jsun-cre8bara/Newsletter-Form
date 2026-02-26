@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     // API 키 확인 (보안을 위해 일부만 로깅)
     console.log('🔑 [API] Resend API 키 확인:', resendApiKey ? `${resendApiKey.substring(0, 10)}...` : '없음')
 
-    const { subject, content, linkUrl, linkText } = await request.json()
+    const { subject, content, linkUrl, linkText, selectedEmails } = await request.json()
 
     if (!subject || !content) {
       return NextResponse.json(
@@ -93,25 +93,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 활성 구독자 조회
-    const { data: subscribers, error: subError } = await adminSupabase
-      .from('subscribers')
-      .select('email')
-      .eq('active', true)
+    let emails: string[] = []
 
-    if (subError) {
-      return NextResponse.json(
-        { error: subError.message || '구독자 조회에 실패했습니다' },
-        { status: 500 }
-      )
+    // 선택된 이메일이 있으면 해당 이메일만 사용
+    if (selectedEmails && Array.isArray(selectedEmails) && selectedEmails.length > 0) {
+      emails = selectedEmails.filter(Boolean)
+      console.log('📋 [API] 선택된 구독자:', emails.length, '명')
+    } else {
+      // 선택된 이메일이 없으면 모든 활성 구독자 조회
+      const { data: subscribers, error: subError } = await adminSupabase
+        .from('subscribers')
+        .select('email')
+        .eq('active', true)
+
+      if (subError) {
+        return NextResponse.json(
+          { error: subError.message || '구독자 조회에 실패했습니다' },
+          { status: 500 }
+        )
+      }
+
+      emails = (subscribers || []).map((s) => s.email).filter(Boolean)
+      console.log('📋 [API] 활성 구독자 조회 결과:', emails.length, '명')
     }
 
-    const emails = (subscribers || []).map((s) => s.email).filter(Boolean)
-    console.log('📋 [API] 활성 구독자 조회 결과:', emails.length, '명')
     if (emails.length === 0) {
-      console.warn('⚠️ [API] 활성 구독자가 없습니다')
+      console.warn('⚠️ [API] 발송 대상이 없습니다')
       return NextResponse.json(
-        { error: '활성 구독자가 없습니다' },
+        { error: '발송 대상이 없습니다' },
         { status: 400 }
       )
     }
@@ -143,8 +152,10 @@ export async function POST(request: NextRequest) {
       `
       : ''
 
-    // 전체 HTML 이메일 템플릿
-    const html = `
+    const origin = getSiteOrigin(request)
+
+    // 각 이메일별로 고유한 HTML 생성 함수
+    const generateEmailHtml = (email: string) => `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; max-width: 600px; margin: 0 auto;">
         <div style="background: #f9fafb; padding: 24px; border-radius: 8px;">
           ${contentHtml}
@@ -156,9 +167,17 @@ export async function POST(request: NextRequest) {
             </p>
           ` : ''}
         </div>
-        <p style="margin-top: 24px; font-size: 12px; color: #9ca3af; text-align: center;">
-          이 뉴스레터는 러브아프리카에서 발송되었습니다.
-        </p>
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <p style="font-size: 12px; color: #9ca3af; margin: 0 0 8px 0;">
+            이 뉴스레터는 러브아프리카에서 발송되었습니다.
+          </p>
+          <p style="font-size: 11px; color: #9ca3af; margin: 0;">
+            더 이상 뉴스레터를 받지 않으시려면 
+            <a href="${origin}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #6b7280; text-decoration: underline;">
+              여기를 클릭
+            </a>하여 구독을 취소하세요.
+          </p>
+        </div>
       </div>
     `
 
@@ -172,12 +191,13 @@ export async function POST(request: NextRequest) {
       emails.map(async (email) => {
         try {
           console.log(`📨 [API] 이메일 발송 시도: ${email}`)
+          const emailHtml = generateEmailHtml(email)
           const result = await resend.emails.send({
             from: 'news@loveafrica.or.kr',
             to: email,
             replyTo: 'loveafrica1004@gmail.com',
             subject,
-            html,
+            html: emailHtml,
           })
           console.log(`✅ [API] Resend 응답 (${email}):`, JSON.stringify(result, null, 2))
           return result
@@ -236,7 +256,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 발송 이력 저장
-    const origin = getSiteOrigin(request)
     console.log('💾 [API] 발송 이력 저장 시작...')
     console.log('💾 [API] 저장할 데이터:', {
       post_id: null,

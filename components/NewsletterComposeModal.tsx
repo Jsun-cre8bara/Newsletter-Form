@@ -7,12 +7,14 @@ interface NewsletterComposeModalProps {
   isOpen: boolean
   onClose: () => void
   subscriberCount: number
+  selectedEmails?: string[]
 }
 
 export default function NewsletterComposeModal({
   isOpen,
   onClose,
   subscriberCount,
+  selectedEmails,
 }: NewsletterComposeModalProps) {
   const [subject, setSubject] = useState('')
   const [content, setContent] = useState('')
@@ -49,6 +51,7 @@ export default function NewsletterComposeModal({
           content,
           linkUrl: linkUrl.trim() || null,
           linkText: linkText.trim() || '포스트 보러가기',
+          selectedEmails: selectedEmails || undefined,
         }),
       })
 
