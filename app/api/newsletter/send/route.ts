@@ -113,15 +113,14 @@ export async function POST(request: NextRequest) {
     }
     console.log('📧 [API] 발송 대상 이메일:', emails)
 
+    console.log('📦 [API] Resend 인스턴스 생성 시작...')
     const resend = new Resend(resendApiKey)
-    
-    // Resend 인스턴스 생성 확인
-    console.log('📦 [API] Resend 인스턴스 생성 완료')
+    console.log('📦 [API] Resend 인스턴스 생성 완료:', resend ? '성공' : '실패')
     
     console.log('📧 [API] 이메일 발송 시작:', {
       구독자수: emails.length,
       from: 'news@loveafrica.or.kr',
-      reply_to: 'loveafrica1004@gmail.com',
+      replyTo: 'loveafrica1004@gmail.com',
       subject,
       emails: emails,
     })
@@ -162,6 +161,8 @@ export async function POST(request: NextRequest) {
     // 이메일 발송
     console.log('📤 [API] Resend API 호출 시작...')
     console.log('📋 [API] 발송 대상:', emails)
+    console.log('📋 [API] Resend 인스턴스 확인:', resend ? '존재함' : '없음')
+    console.log('📋 [API] Resend.emails 확인:', resend?.emails ? '존재함' : '없음')
     
     const sendResults = await Promise.allSettled(
       emails.map(async (email) => {
