@@ -93,7 +93,6 @@ export async function POST(
 
     const origin = getSiteOrigin(request)
     const postUrl = `${origin}/post/${post.slug}`
-    const fromAddress = process.env.NEWSLETTER_FROM_EMAIL || 'onboarding@resend.dev'
     const subject = `[러브아프리카 뉴스레터] ${post.title}`
 
     const html = `
@@ -114,8 +113,9 @@ export async function POST(
     const sendResults = await Promise.allSettled(
       emails.map((email) =>
         resend.emails.send({
-          from: fromAddress,
+          from: 'news@loveafrica.or.kr',
           to: email,
+          reply_to: 'loveafrica1004@gmail.com',
           subject,
           html,
         })

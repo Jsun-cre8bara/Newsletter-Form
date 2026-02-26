@@ -105,7 +105,6 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = new Resend(resendApiKey)
-    const fromAddress = process.env.NEWSLETTER_FROM_EMAIL || 'onboarding@resend.dev'
     
     // 본문을 HTML로 변환
     const contentHtml = markdownToHtml(content)
@@ -144,8 +143,9 @@ export async function POST(request: NextRequest) {
     const sendResults = await Promise.allSettled(
       emails.map((email) =>
         resend.emails.send({
-          from: fromAddress,
+          from: 'news@loveafrica.or.kr',
           to: email,
+          reply_to: 'loveafrica1004@gmail.com',
           subject,
           html,
         })
