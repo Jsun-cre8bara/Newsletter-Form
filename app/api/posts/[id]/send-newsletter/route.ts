@@ -122,8 +122,26 @@ export async function POST(
       )
     )
 
+    // 발송 결과 상세 로깅
+    const failedResults: Array<{ email: string; error: any }> = []
+    sendResults.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const email = emails[index]
+        console.error(`❌ [API] 이메일 발송 실패 (${email}):`, result.reason)
+        failedResults.push({ email, error: result.reason })
+      } else if (result.status === 'fulfilled') {
+        const email = emails[index]
+        console.log(`✅ [API] 이메일 발송 성공 (${email}):`, result.value)
+      }
+    })
+
     const successCount = sendResults.filter((r) => r.status === 'fulfilled').length
     const failed = sendResults.length - successCount
+
+    // 실패한 경우 상세 에러 로그
+    if (failed > 0) {
+      console.error(`❌ [API] 총 ${failed}개 이메일 발송 실패:`, failedResults)
+    }
 
     // 발송 이력 저장 (테이블이 없는 초기 상태에서도 발송 자체는 성공 처리)
     const { error: logError } = await adminSupabase
