@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Mail, Send } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { SubscriberFormData } from '@/lib/types'
 
 export default function NewsletterForm() {
@@ -17,21 +16,31 @@ export default function NewsletterForm() {
     setMessage(null)
 
     try {
-      const { error } = await supabase
-        .from('subscribers')
-        .insert([{ email: data.email, active: true }])
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: data.email }),
+      })
 
-      if (error) {
-        if (error.code === '23505') { // Unique violation
-          setMessage({ type: 'error', text: '이미 구독 중인 이메일입니다.' })
-        } else {
-          setMessage({ type: 'error', text: '구독 신청에 실패했습니다. 다시 시도해주세요.' })
-        }
+      const responseData = await response.json()
+
+      if (!response.ok) {
+        setMessage({
+          type: 'error',
+          text: responseData.error || '구독 신청에 실패했습니다. 다시 시도해주세요.',
+        })
       } else {
-        setMessage({ type: 'success', text: '구독해 주셔서 감사합니다! 🎉' })
+        setMessage({
+          type: 'success',
+          text: responseData.reactivated
+            ? '다시 구독이 활성화되었습니다! 🎉'
+            : '구독해 주셔서 감사합니다! 🎉',
+        })
         reset()
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: '오류가 발생했습니다. 다시 시도해주세요.' })
     } finally {
       setIsSubmitting(false)
