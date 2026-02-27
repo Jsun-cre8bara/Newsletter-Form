@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'next/navigation'
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react'
@@ -10,7 +10,7 @@ interface UnsubscribeFormData {
   email: string
 }
 
-export default function UnsubscribePage() {
+function UnsubscribeContent() {
   const searchParams = useSearchParams()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [result, setResult] = useState<{ type: 'success' | 'error', message: string } | null>(null)
@@ -146,5 +146,13 @@ export default function UnsubscribePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function UnsubscribePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <UnsubscribeContent />
+    </Suspense>
   )
 }
