@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { ArrowLeft, Save, Upload, Trash2, Image as ImageIcon, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { Post, PostFormData } from '@/lib/types'
+import { uploadImage } from '@/lib/supabase'
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null)
   const [post, setPost] = useState<Post | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false)
   const [uploadingContentImage, setUploadingContentImage] = useState(false)
   const [isSendingNewsletter, setIsSendingNewsletter] = useState(false)
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -25,6 +27,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   
   const contentValue = watch('content')
   const [thumbnailUrl, setThumbnailUrl] = useState('')
+  const [contentImageUrl, setContentImageUrl] = useState('')
 
   useEffect(() => {
     fetchPost()
@@ -54,36 +57,34 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     })
   }
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    
-    // 경로 확인
-    if (!imagePath.trim()) {
-      alert('⚠️ 이미지 저장 경로를 먼저 입력해주세요!')
-      e.target.value = ''
-      return
-    }
 
-    console.log('🖼️ 썸네일 파일 선택됨:', file?.name, file?.size, 'bytes')
-    
-    // 로컬 경로 생성 (img_upload는 고정)
-    const relativePath = `img_upload/${imagePath}/${file.name}`
-    
-    // GitHub raw URL 생성
-    const githubRawUrl = `https://raw.githubusercontent.com/Jsun-cre8bara/Newsletter-Form/main/${relativePath}`
-    setThumbnailUrl(githubRawUrl)
-    
-    console.log('✅ 썸네일 URL 생성:', githubRawUrl)
-    
-    // 미리보기 생성
+    setUploadingThumbnail(true)
+    setError(null)
+
+    // 업로드 완료 전에도 바로 미리보기
     const reader = new FileReader()
     reader.onloadend = () => {
       setThumbnailPreview(reader.result as string)
     }
     reader.readAsDataURL(file)
-    
-    alert(`✅ 썸네일 경로가 설정되었습니다!\n\n저장할 위치:\n${relativePath}\n\n포스트 저장 전에 위 경로에 이미지 파일을 저장하고 Git에 커밋해주세요.`)
+
+    try {
+      const uploadedUrl = await uploadImage(file)
+      if (!uploadedUrl) throw new Error('이미지 업로드에 실패했습니다.')
+
+      setThumbnailUrl(uploadedUrl)
+      setThumbnailPreview(uploadedUrl)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '썸네일 업로드 중 오류가 발생했습니다.'
+      setError(message)
+      alert(message)
+    } finally {
+      setUploadingThumbnail(false)
+      e.target.value = ''
+    }
   }
 
   // Handle content image upload
@@ -91,62 +92,80 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // 경로 확인
-    if (!imagePath.trim()) {
-      alert('⚠️ 이미지 저장 경로를 먼저 입력해주세요!')
-      e.target.value = ''
-      return
-    }
-
     setUploadingContentImage(true)
-    console.log('📸 본문 이미지 경로 생성:', file.name)
 
     try {
-      // 로컬 경로 생성 (img_upload는 고정)
-      const relativePath = `img_upload/${imagePath}/${file.name}`
-      
-      // GitHub raw URL 생성
-      const githubRawUrl = `https://raw.githubusercontent.com/Jsun-cre8bara/Newsletter-Form/main/${relativePath}`
-      
-      console.log('✅ GitHub URL 생성:', githubRawUrl)
-      
+      const uploadedUrl = await uploadImage(file)
+      if (!uploadedUrl) throw new Error('이미지 업로드에 실패했습니다.')
+
       // 마크다운 형식으로 이미지 삽입
-      const imageMarkdown = `\n![${file.name.split('.')[0]}](${githubRawUrl})\n`
-      
+      const imageMarkdown = `\n![${file.name.split('.')[0]}](${uploadedUrl})\n`
+
       // 현재 커서 위치에 삽입
       const textarea = contentTextareaRef.current
       if (textarea) {
         const start = textarea.selectionStart
         const end = textarea.selectionEnd
         const currentContent = contentValue || ''
-        const newContent = 
-          currentContent.substring(0, start) + 
-          imageMarkdown + 
+        const newContent =
+          currentContent.substring(0, start) +
+          imageMarkdown +
           currentContent.substring(end)
-        
+
         setValue('content', newContent)
-        
+
         // 커서를 삽입된 마크다운 뒤로 이동
         setTimeout(() => {
           textarea.focus()
           const newPosition = start + imageMarkdown.length
           textarea.setSelectionRange(newPosition, newPosition)
         }, 0)
-        
-        alert(`✅ 이미지 경로가 본문에 추가되었습니다!\n\n저장할 위치:\n${relativePath}\n\n포스트 저장 전에 위 경로에 이미지 파일을 저장하고 Git에 커밋해주세요.`)
       } else {
-        // textarea ref가 없으면 끝에 추가
         setValue('content', (contentValue || '') + imageMarkdown)
-        alert(`✅ 이미지 경로가 본문 끝에 추가되었습니다!\n\n저장할 위치:\n${relativePath}`)
       }
     } catch (error) {
       console.error('❌ 이미지 경로 생성 실패:', error)
-      alert('이미지 경로 생성에 실패했습니다.')
+      const message = error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.'
+      setError(message)
+      alert(message)
     } finally {
       setUploadingContentImage(false)
       // 파일 input 초기화
       e.target.value = ''
     }
+  }
+
+  const insertContentImageByUrl = () => {
+    const url = contentImageUrl.trim()
+    if (!url) {
+      alert('이미지 URL을 입력해주세요.')
+      return
+    }
+
+    const imageMarkdown = `\n![image](${url})\n`
+
+    const textarea = contentTextareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const currentContent = contentValue || ''
+      const newContent =
+        currentContent.substring(0, start) +
+        imageMarkdown +
+        currentContent.substring(end)
+
+      setValue('content', newContent)
+
+      setTimeout(() => {
+        textarea.focus()
+        const newPosition = start + imageMarkdown.length
+        textarea.setSelectionRange(newPosition, newPosition)
+      }, 0)
+    } else {
+      setValue('content', (contentValue || '') + imageMarkdown)
+    }
+
+    setContentImageUrl('')
   }
 
   const onSubmit = async (data: PostFormData) => {
@@ -383,6 +402,23 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                 />
               )}
             </div>
+
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                또는 썸네일 URL 직접 입력
+              </label>
+              <input
+                type="url"
+                value={thumbnailUrl}
+                onChange={(e) => {
+                  setThumbnailUrl(e.target.value)
+                  setThumbnailPreview(e.target.value || null)
+                }}
+                placeholder="https://... (예: Supabase public URL)"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={uploadingThumbnail}
+              />
+            </div>
           </div>
 
           {/* Image Path Settings */}
@@ -424,6 +460,25 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                   className="hidden"
                 />
               </label>
+            </div>
+
+            <div className="flex items-center gap-3 mb-3">
+              <input
+                type="url"
+                value={contentImageUrl}
+                onChange={(e) => setContentImageUrl(e.target.value)}
+                placeholder="이미지 URL 붙여넣기 후 추가"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={uploadingContentImage}
+              />
+              <button
+                type="button"
+                onClick={insertContentImageByUrl}
+                className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled={uploadingContentImage}
+              >
+                URL로 추가
+              </button>
             </div>
             <textarea
               {...register('content', { required: '본문을 입력해주세요' })}
