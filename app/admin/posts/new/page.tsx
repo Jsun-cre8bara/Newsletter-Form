@@ -450,6 +450,27 @@ export default function NewPostPage() {
                       if (!textarea) return
                       const start = textarea.selectionStart
                       const current = contentValue || ''
+                      const insert = `\n`
+                      const next = current.substring(0, start) + insert + current.substring(start)
+                      setValue('content', next)
+                      setTimeout(() => {
+                        textarea.focus()
+                        const caret = start + insert.length
+                        textarea.setSelectionRange(caret, caret)
+                      }, 0)
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                    title="1줄 줄바꿈"
+                  >
+                    1줄 줄바꿈
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = contentTextareaRef.current
+                      if (!textarea) return
+                      const start = textarea.selectionStart
+                      const current = contentValue || ''
                       const insert = `\n\n`
                       const next = current.substring(0, start) + insert + current.substring(start)
                       setValue('content', next)
@@ -460,9 +481,30 @@ export default function NewPostPage() {
                       }, 0)
                     }}
                     className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
-                    title="2줄 줄바꿈 (빈 줄 추가)"
+                    title="2줄 줄바꿈 (빈 줄 1줄)"
                   >
-                    줄바꿈(2줄)
+                    2줄 줄바꿈
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = contentTextareaRef.current
+                      if (!textarea) return
+                      const start = textarea.selectionStart
+                      const current = contentValue || ''
+                      const insert = `\n\n\n`
+                      const next = current.substring(0, start) + insert + current.substring(start)
+                      setValue('content', next)
+                      setTimeout(() => {
+                        textarea.focus()
+                        const caret = start + insert.length
+                        textarea.setSelectionRange(caret, caret)
+                      }, 0)
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                    title="3줄 줄바꿈 (빈 줄 2줄)"
+                  >
+                    3줄 줄바꿈
                   </button>
                 </div>
                 <button
