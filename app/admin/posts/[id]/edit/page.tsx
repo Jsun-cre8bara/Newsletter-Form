@@ -7,6 +7,9 @@ import { ArrowLeft, Save, Upload, Trash2, Image as ImageIcon, Mail } from 'lucid
 import Link from 'next/link'
 import { Post, PostFormData } from '@/lib/types'
 import { uploadImage } from '@/lib/supabase'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -28,6 +31,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   const contentValue = watch('content')
   const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [contentImageUrl, setContentImageUrl] = useState('')
+  const [showPreview, setShowPreview] = useState(true)
 
   useEffect(() => {
     fetchPost()
@@ -449,17 +453,95 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
               <label className="block text-sm font-medium text-gray-700">
                 본문 (Markdown) *
               </label>
-              <label className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 cursor-pointer transition text-sm">
-                <ImageIcon className="w-4 h-4" />
-                {uploadingContentImage ? '업로드 중...' : '본문 이미지 추가'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleContentImageUpload}
-                  disabled={uploadingContentImage}
-                  className="hidden"
-                />
-              </label>
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = contentTextareaRef.current
+                      if (!textarea) return
+                      const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
+                      const current = contentValue || ''
+                      const selected = current.substring(start, end)
+                      const wrapped = `**${selected || '굵게**'}`
+                      const next = current.substring(0, start) + wrapped + current.substring(end)
+                      setValue('content', next)
+                      setTimeout(() => {
+                        textarea.focus()
+                        const caret = start + wrapped.length
+                        textarea.setSelectionRange(caret, caret)
+                      }, 0)
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                    title="굵게 (**텍스트**)"
+                  >
+                    굵게
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = contentTextareaRef.current
+                      if (!textarea) return
+                      const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
+                      const current = contentValue || ''
+                      const selected = current.substring(start, end)
+                      const wrapped = `*${selected || '기울임*'}`
+                      const next = current.substring(0, start) + wrapped + current.substring(end)
+                      setValue('content', next)
+                      setTimeout(() => {
+                        textarea.focus()
+                        const caret = start + wrapped.length
+                        textarea.setSelectionRange(caret, caret)
+                      }, 0)
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                    title="기울임 (*텍스트*)"
+                  >
+                    기울임
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = contentTextareaRef.current
+                      if (!textarea) return
+                      const start = textarea.selectionStart
+                      const current = contentValue || ''
+                      const insert = `\n- 항목\n- 항목\n`
+                      const next = current.substring(0, start) + insert + current.substring(start)
+                      setValue('content', next)
+                      setTimeout(() => {
+                        textarea.focus()
+                        const caret = start + insert.length
+                        textarea.setSelectionRange(caret, caret)
+                      }, 0)
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                    title="목록 (- 항목)"
+                  >
+                    목록
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview((v) => !v)}
+                  className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm"
+                >
+                  {showPreview ? '미리보기 숨기기' : '미리보기 보기'}
+                </button>
+                <label className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 cursor-pointer transition text-sm">
+                  <ImageIcon className="w-4 h-4" />
+                  {uploadingContentImage ? '업로드 중...' : '본문 이미지 추가'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleContentImageUpload}
+                    disabled={uploadingContentImage}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="flex items-center gap-3 mb-3">
@@ -492,6 +574,16 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
               rows={15}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
             />
+            {showPreview && (
+              <div className="mt-4 bg-white border rounded-lg p-4 overflow-auto max-h-[420px]">
+                <div className="text-sm text-gray-500 mb-2">미리보기</div>
+                <div className="prose max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                    {contentValue || ''}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            )}
             {errors.content && (
               <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
             )}
