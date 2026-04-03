@@ -490,9 +490,10 @@ export default function NewPostPage() {
                       const textarea = contentTextareaRef.current
                       if (!textarea) return
                       const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
                       const current = contentValue || ''
                       const insert = `\n`
-                      const next = current.substring(0, start) + insert + current.substring(start)
+                      const next = current.substring(0, start) + insert + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
@@ -511,9 +512,10 @@ export default function NewPostPage() {
                       const textarea = contentTextareaRef.current
                       if (!textarea) return
                       const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
                       const current = contentValue || ''
                       const insert = `\n\n`
-                      const next = current.substring(0, start) + insert + current.substring(start)
+                      const next = current.substring(0, start) + insert + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
@@ -532,9 +534,12 @@ export default function NewPostPage() {
                       const textarea = contentTextareaRef.current
                       if (!textarea) return
                       const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
                       const current = contentValue || ''
-                      const insert = `\n\n\n`
-                      const next = current.substring(0, start) + insert + current.substring(start)
+                      // 마크다운은 연속된 빈 줄을 1번만 반영하는 경우가 있어,
+                      // 3줄바꿈은 <br />를 명시적으로 넣어 미리보기에서도 차이가 보이게 합니다.
+                      const insert = `\n\n<br />\n<br />\n`
+                      const next = current.substring(0, start) + insert + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
@@ -605,7 +610,10 @@ export default function NewPostPage() {
                 <div className="flex-1 bg-white border rounded-lg p-4 overflow-auto max-h-[520px]">
                   <div className="text-sm text-gray-500 mb-2">미리보기</div>
                   <div className="prose max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm, remarkBreaks]}
+                      skipHtml={false}
+                    >
                       {contentValue || ''}
                     </ReactMarkdown>
                   </div>

@@ -566,9 +566,10 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                       const textarea = contentTextareaRef.current
                       if (!textarea) return
                       const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
                       const current = contentValue || ''
                       const insert = `\n`
-                      const next = current.substring(0, start) + insert + current.substring(start)
+                      const next = current.substring(0, start) + insert + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
@@ -587,9 +588,10 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                       const textarea = contentTextareaRef.current
                       if (!textarea) return
                       const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
                       const current = contentValue || ''
                       const insert = `\n\n`
-                      const next = current.substring(0, start) + insert + current.substring(start)
+                      const next = current.substring(0, start) + insert + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
@@ -608,9 +610,10 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                       const textarea = contentTextareaRef.current
                       if (!textarea) return
                       const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
                       const current = contentValue || ''
-                      const insert = `\n\n\n`
-                      const next = current.substring(0, start) + insert + current.substring(start)
+                      const insert = `\n\n<br />\n<br />\n`
+                      const next = current.substring(0, start) + insert + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
@@ -680,7 +683,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                 <div className="flex-1 bg-white border rounded-lg p-4 overflow-auto max-h-[520px]">
                   <div className="text-sm text-gray-500 mb-2">미리보기</div>
                   <div className="prose max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} skipHtml={false}>
                       {contentValue || ''}
                     </ReactMarkdown>
                   </div>
