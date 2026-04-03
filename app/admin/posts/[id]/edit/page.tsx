@@ -10,6 +10,7 @@ import { uploadImage } from '@/lib/supabase'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
+import rehypeRaw from 'rehype-raw'
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -683,7 +684,11 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                 <div className="flex-1 bg-white border rounded-lg p-4 overflow-auto max-h-[520px]">
                   <div className="text-sm text-gray-500 mb-2">미리보기</div>
                   <div className="prose max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} skipHtml={false}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm, remarkBreaks]}
+                      skipHtml={false}
+                      rehypePlugins={[rehypeRaw]}
+                    >
                       {contentValue || ''}
                     </ReactMarkdown>
                   </div>

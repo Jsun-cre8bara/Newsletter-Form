@@ -10,6 +10,7 @@ import { PostFormData } from '@/lib/types'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
+import rehypeRaw from 'rehype-raw'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -613,6 +614,7 @@ export default function NewPostPage() {
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm, remarkBreaks]}
                       skipHtml={false}
+                    rehypePlugins={[rehypeRaw]}
                     >
                       {contentValue || ''}
                     </ReactMarkdown>
