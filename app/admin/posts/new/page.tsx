@@ -443,6 +443,27 @@ export default function NewPostPage() {
                   >
                     목록
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = contentTextareaRef.current
+                      if (!textarea) return
+                      const start = textarea.selectionStart
+                      const current = contentValue || ''
+                      const insert = `\n\n`
+                      const next = current.substring(0, start) + insert + current.substring(start)
+                      setValue('content', next)
+                      setTimeout(() => {
+                        textarea.focus()
+                        const caret = start + insert.length
+                        textarea.setSelectionRange(caret, caret)
+                      }, 0)
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                    title="2줄 줄바꿈 (빈 줄 추가)"
+                  >
+                    줄바꿈(2줄)
+                  </button>
                 </div>
                 <button
                   type="button"
@@ -483,29 +504,31 @@ export default function NewPostPage() {
                 URL로 추가
               </button>
             </div>
-            <textarea
-              {...register('content', { required: '본문을 입력해주세요' })}
-              ref={(e) => {
-                const { ref } = register('content')
-                if (typeof ref === 'function') {
-                  ref(e)
-                }
-                contentTextareaRef.current = e
-              }}
-              rows={15}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-              placeholder="# 제목&#10;&#10;본문 내용을 마크다운으로 작성하세요...&#10;&#10;이미지를 삽입하려면 위의 '본문 이미지 추가' 버튼을 클릭하세요."
-            />
-            {showPreview && (
-              <div className="mt-4 bg-white border rounded-lg p-4 overflow-auto max-h-[420px]">
-                <div className="text-sm text-gray-500 mb-2">미리보기</div>
-                <div className="prose max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                    {contentValue || ''}
-                  </ReactMarkdown>
+            <div className="flex flex-col lg:flex-row gap-4">
+              <textarea
+                {...register('content', { required: '본문을 입력해주세요' })}
+                ref={(e) => {
+                  const { ref } = register('content')
+                  if (typeof ref === 'function') {
+                    ref(e)
+                  }
+                  contentTextareaRef.current = e
+                }}
+                rows={18}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                placeholder="# 제목&#10;&#10;본문 내용을 마크다운으로 작성하세요...&#10;&#10;이미지를 삽입하려면 위의 '본문 이미지 추가' 버튼을 클릭하세요."
+              />
+              {showPreview && (
+                <div className="flex-1 bg-white border rounded-lg p-4 overflow-auto max-h-[520px]">
+                  <div className="text-sm text-gray-500 mb-2">미리보기</div>
+                  <div className="prose max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                      {contentValue || ''}
+                    </ReactMarkdown>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             {errors.content && (
               <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
             )}

@@ -562,28 +562,30 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                 URL로 추가
               </button>
             </div>
-            <textarea
-              {...register('content', { required: '본문을 입력해주세요' })}
-              ref={(e) => {
-                const { ref } = register('content')
-                if (typeof ref === 'function') {
-                  ref(e)
-                }
-                contentTextareaRef.current = e
-              }}
-              rows={15}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-            />
-            {showPreview && (
-              <div className="mt-4 bg-white border rounded-lg p-4 overflow-auto max-h-[420px]">
-                <div className="text-sm text-gray-500 mb-2">미리보기</div>
-                <div className="prose max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                    {contentValue || ''}
-                  </ReactMarkdown>
+            <div className="flex flex-col lg:flex-row gap-4">
+              <textarea
+                {...register('content', { required: '본문을 입력해주세요' })}
+                ref={(e) => {
+                  const { ref } = register('content')
+                  if (typeof ref === 'function') {
+                    ref(e)
+                  }
+                  contentTextareaRef.current = e
+                }}
+                rows={18}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+              />
+              {showPreview && (
+                <div className="flex-1 bg-white border rounded-lg p-4 overflow-auto max-h-[520px]">
+                  <div className="text-sm text-gray-500 mb-2">미리보기</div>
+                  <div className="prose max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                      {contentValue || ''}
+                    </ReactMarkdown>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             {errors.content && (
               <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
             )}
