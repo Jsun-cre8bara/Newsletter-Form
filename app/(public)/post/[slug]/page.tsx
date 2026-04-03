@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import { supabase } from '@/lib/supabase'
 import { Post } from '@/lib/types'
 import NewsletterForm from '@/components/NewsletterForm'
@@ -106,6 +108,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
             {/* Content */}
             <div className="prose prose-lg max-w-none">
               <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
                   img: ({ node, ...props }) => (
                     // eslint-disable-next-line @next/next/no-img-element
