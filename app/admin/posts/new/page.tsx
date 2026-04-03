@@ -385,13 +385,35 @@ export default function NewPostPage() {
                       const end = textarea.selectionEnd
                       const current = contentValue || ''
                       const selected = current.substring(start, end)
-                      const wrapped = `**${selected || '굵게**'}`
+                      const placeholder = '텍스트'
+                      const isBold = selected.startsWith('**') && selected.endsWith('**') && selected.length >= 4
+                      const isItalic =
+                        selected.startsWith('*') &&
+                        selected.endsWith('*') &&
+                        !selected.startsWith('**') &&
+                        !selected.endsWith('**') &&
+                        selected.length >= 2
+                      const isBoth = selected.startsWith('***') && selected.endsWith('***') && selected.length >= 6
+
+                      // 굵게/기울임을 같은 텍스트에 연달아 적용할 때 마크다운이 깨지지 않도록
+                      // 이미 적용된 형태를 감지해서 ***text*** 형태로 정규화합니다.
+                      const wrapped = isBoth
+                        ? selected
+                        : isItalic
+                          ? (() => {
+                              const inner = selected.slice(1, -1)
+                              return `***${inner}***`
+                            })()
+                          : isBold
+                            ? selected
+                            : `**${selected || placeholder}**`
+
                       const next = current.substring(0, start) + wrapped + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
-                        const caret = start + wrapped.length
-                        textarea.setSelectionRange(caret, caret)
+                        // 방금 만든(또는 변환한) 마크다운 전체를 선택해두면 다음 버튼이 더 쉽게 동작합니다.
+                        textarea.setSelectionRange(start, start + wrapped.length)
                       }, 0)
                     }}
                     className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
@@ -408,13 +430,32 @@ export default function NewPostPage() {
                       const end = textarea.selectionEnd
                       const current = contentValue || ''
                       const selected = current.substring(start, end)
-                      const wrapped = `*${selected || '기울임*'}`
+                      const placeholder = '텍스트'
+                      const isBold = selected.startsWith('**') && selected.endsWith('**') && selected.length >= 4
+                      const isItalic =
+                        selected.startsWith('*') &&
+                        selected.endsWith('*') &&
+                        !selected.startsWith('**') &&
+                        !selected.endsWith('**') &&
+                        selected.length >= 2
+                      const isBoth = selected.startsWith('***') && selected.endsWith('***') && selected.length >= 6
+
+                      const wrapped = isBoth
+                        ? selected
+                        : isBold
+                          ? (() => {
+                              const inner = selected.slice(2, -2)
+                              return `***${inner}***`
+                            })()
+                          : isItalic
+                            ? selected
+                            : `*${selected || placeholder}*`
+
                       const next = current.substring(0, start) + wrapped + current.substring(end)
                       setValue('content', next)
                       setTimeout(() => {
                         textarea.focus()
-                        const caret = start + wrapped.length
-                        textarea.setSelectionRange(caret, caret)
+                        textarea.setSelectionRange(start, start + wrapped.length)
                       }, 0)
                     }}
                     className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
