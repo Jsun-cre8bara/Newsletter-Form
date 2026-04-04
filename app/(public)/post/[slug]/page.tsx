@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import rehypeRaw from 'rehype-raw'
 import { supabase } from '@/lib/supabase'
+import { getSiteUrl } from '@/lib/site'
 import { Post } from '@/lib/types'
 import NewsletterForm from '@/components/NewsletterForm'
 
@@ -35,9 +36,33 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     }
   }
 
+  const siteUrl = getSiteUrl()
+  const thumb = post.thumbnail_url?.trim()
+  const ogImage =
+    thumb && (thumb.startsWith('http://') || thumb.startsWith('https://'))
+      ? thumb
+      : thumb
+        ? new URL(thumb.startsWith('/') ? thumb : `/${thumb}`, siteUrl).href
+        : new URL('/LOA-logo.png', siteUrl).href
+
   return {
     title: post.title,
     description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      url: `${siteUrl}/post/${post.slug}`,
+      siteName: '(사)러브아프리카 뉴스레터',
+      locale: 'ko_KR',
+      type: 'article',
+      images: [{ url: ogImage, alt: post.title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: [ogImage],
+    },
   }
 }
 
