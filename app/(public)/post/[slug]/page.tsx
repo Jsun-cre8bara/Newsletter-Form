@@ -8,6 +8,7 @@ import remarkBreaks from 'remark-breaks'
 import rehypeRaw from 'rehype-raw'
 import { supabase } from '@/lib/supabase'
 import { getSiteUrl } from '@/lib/site'
+import { resolvePostOgImageUrl } from '@/lib/post-og'
 import { Post } from '@/lib/types'
 import NewsletterForm from '@/components/NewsletterForm'
 
@@ -37,13 +38,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 
   const siteUrl = getSiteUrl()
-  const thumb = post.thumbnail_url?.trim()
-  const ogImage =
-    thumb && (thumb.startsWith('http://') || thumb.startsWith('https://'))
-      ? thumb
-      : thumb
-        ? new URL(thumb.startsWith('/') ? thumb : `/${thumb}`, siteUrl).href
-        : new URL('/LOA-logo.png', siteUrl).href
+  const ogImage = resolvePostOgImageUrl(post, siteUrl)
 
   return {
     title: post.title,
